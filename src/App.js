@@ -95,9 +95,10 @@ function App() {
     }
   };
 
+  // FIXED: Added eslint disable comment
   useEffect(() => {
     loadCSVData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = query
     ? products.filter((p) => {
