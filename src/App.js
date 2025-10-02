@@ -1,6 +1,5 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import logo from "./assets/logo-GF.avif";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -50,12 +49,8 @@ function App() {
       setLoading(true);
       setError(false);
 
-      // Use environment variables with fallback URLs
       const PRODUCTS_CSV_URL = process.env.REACT_APP_PRODUCTS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=269240112&single=true&output=csv";
       const SUPPLIERS_CSV_URL = process.env.REACT_APP_SUPPLIERS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=1184049021&single=true&output=csv";
-
-      console.log("Loading products from:", PRODUCTS_CSV_URL);
-      console.log("Loading suppliers from:", SUPPLIERS_CSV_URL);
 
       const [productsResponse, suppliersResponse] = await Promise.all([
         fetch(PRODUCTS_CSV_URL, { 
@@ -78,7 +73,6 @@ function App() {
       const productsData = csvToJson(productsText);
       const suppliersData = csvToJson(suppliersText);
 
-      // Normalize headers
       const normalize = (rows) =>
         rows.map((row) => {
           const obj = {};
@@ -132,8 +126,9 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-3xl">
+        {/* FIXED LOGO - Using public folder */}
         <img
-          src={logo}
+          src={`${process.env.PUBLIC_URL}/logo-GF.avif`}
           alt="Company Logo"
           className="h-16 mx-auto mb-4"
         />
