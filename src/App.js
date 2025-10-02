@@ -132,7 +132,7 @@ function App() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-3xl">
         <img
-          src="/logo-GF.avif"
+          src={process.env.PUBLIC_URL + "/logo-GF.avif"}
           alt="Company Logo"
           className="h-16 mx-auto mb-4"
         />
