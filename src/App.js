@@ -12,15 +12,13 @@ function App() {
   function formatDate(value) {
     if (!value) return "N/A";
 
-    // Excel serial number
     if (!isNaN(value)) {
       const utc_days = Math.floor(value - 25569);
       const utc_value = utc_days * 86400;
       const date_info = new Date(utc_value * 1000);
-      return date_info.toLocaleDateString("en-GB"); // dd/mm/yyyy
+      return date_info.toLocaleDateString("en-GB");
     }
 
-    // Already a string date
     const parsed = new Date(value);
     if (!isNaN(parsed)) {
       return parsed.toLocaleDateString("en-GB");
@@ -47,13 +45,13 @@ function App() {
   };
 
   const loadCSVData = async () => {
-  try {
-    setLoading(true);
-    setError(false);
+    try {
+      setLoading(true);
+      setError(false);
 
-    // Use environment variables with fallback to direct URLs
-    const PRODUCTS_CSV_URL = process.env.REACT_APP_PRODUCTS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=269240112&single=true&output=csv";
-    const SUPPLIERS_CSV_URL = process.env.REACT_APP_SUPPLIERS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=1184049021&single=true&output=csv";
+      // Use environment variables with fallback URLs
+      const PRODUCTS_CSV_URL = process.env.REACT_APP_PRODUCTS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=269240112&single=true&output=csv";
+      const SUPPLIERS_CSV_URL = process.env.REACT_APP_SUPPLIERS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=1184049021&single=true&output=csv";
 
       console.log("Loading products from:", PRODUCTS_CSV_URL);
       console.log("Loading suppliers from:", SUPPLIERS_CSV_URL);
@@ -61,37 +59,23 @@ function App() {
       const [productsResponse, suppliersResponse] = await Promise.all([
         fetch(PRODUCTS_CSV_URL, { 
           cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch(SUPPLIERS_CSV_URL, { 
           cache: 'no-cache',
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
+          headers: { 'Cache-Control': 'no-cache' }
         })
       ]);
 
-      if (!productsResponse.ok) {
-        throw new Error(`Products failed: ${productsResponse.status} ${productsResponse.statusText}`);
-      }
-      if (!suppliersResponse.ok) {
-        throw new Error(`Suppliers failed: ${suppliersResponse.status} ${suppliersResponse.statusText}`);
+      if (!productsResponse.ok || !suppliersResponse.ok) {
+        throw new Error('Failed to load data');
       }
 
       const productsText = await productsResponse.text();
       const suppliersText = await suppliersResponse.text();
 
-      console.log("Products CSV sample:", productsText.substring(0, 200));
-      console.log("Suppliers CSV sample:", suppliersText.substring(0, 200));
-
-      // Parse CSV data using built-in function
       const productsData = csvToJson(productsText);
       const suppliersData = csvToJson(suppliersText);
-
-      console.log("Parsed products:", productsData.length, "rows");
-      console.log("Parsed suppliers:", suppliersData.length, "rows");
 
       // Normalize headers
       const normalize = (rows) =>
@@ -104,14 +88,8 @@ function App() {
           return obj;
         });
 
-      const normalizedProducts = normalize(productsData);
-      const normalizedSuppliers = normalize(suppliersData);
-
-      console.log("Normalized products headers:", Object.keys(normalizedProducts[0] || {}));
-      console.log("Normalized suppliers headers:", Object.keys(normalizedSuppliers[0] || {}));
-
-      setProducts(normalizedProducts);
-      setSuppliers(normalizedSuppliers);
+      setProducts(normalize(productsData));
+      setSuppliers(normalize(suppliersData));
       setError(false);
 
     } catch (err) {
@@ -129,9 +107,7 @@ function App() {
   const filtered = query
     ? products.filter((p) => {
         const productCode = String(p["PRODUCT CODE"] || "").toLowerCase();
-        const supplierProductCode = String(
-          p["SUPPLIER PRODUCT CODE"] || ""
-        ).toLowerCase();
+        const supplierProductCode = String(p["SUPPLIER PRODUCT CODE"] || "").toLowerCase();
         const supplier = String(p["SUPPLIER"] || "").toLowerCase();
         const productName = String(p["PRODUCT"] || "").toLowerCase();
 
@@ -188,12 +164,6 @@ function App() {
           </div>
         )}
 
-        {!loading && !error && products.length === 0 && (
-          <p className="text-yellow-500 mb-4 text-center">
-            ⚠️ No products loaded. Check if your CSV files have data.
-          </p>
-        )}
-
         {!loading && !error && query && filtered.length === 0 && (
           <p className="text-gray-500 italic text-center">No results found.</p>
         )}
@@ -202,104 +172,48 @@ function App() {
           const supplierInfo = getSupplierData(item["SUPPLIER"]);
 
           return (
-            <div
-              key={index}
-              className="border p-4 mb-4 rounded shadow bg-white"
-            >
+            <div key={index} className="border p-4 mb-4 rounded shadow bg-white">
               <h2 className="text-lg font-semibold mb-1">{item["PRODUCT"]}</h2>
-              <p>
-                <strong>Product Code:</strong> {item["PRODUCT CODE"]}
-              </p>
-              <p>
-                <strong>Supplier Product Code:</strong>{" "}
-                {item["SUPPLIER PRODUCT CODE"]}
-              </p>
-              <p>
-                <strong>Supplier:</strong> {item["SUPPLIER"]}
-              </p>
+              <p><strong>Product Code:</strong> {item["PRODUCT CODE"]}</p>
+              <p><strong>Supplier Product Code:</strong> {item["SUPPLIER PRODUCT CODE"]}</p>
+              <p><strong>Supplier:</strong> {item["SUPPLIER"]}</p>
 
-              {/* Supplier Certificates */}
               {supplierInfo && (
                 <>
-                  <p>
-                    <strong>IFS Certificate Expiration:</strong>{" "}
-                    {formatDate(supplierInfo["IFS CERTIFICATE EXPIRATION"])}
-                  </p>
-                  <p>
-                    <strong>BRC Certificate Expiration:</strong>{" "}
-                    {formatDate(supplierInfo["BRC CERTIFICATE EXPIRATION"])}
-                  </p>
+                  <p><strong>IFS Certificate Expiration:</strong> {formatDate(supplierInfo["IFS CERTIFICATE EXPIRATION"])}</p>
+                  <p><strong>BRC Certificate Expiration:</strong> {formatDate(supplierInfo["BRC CERTIFICATE EXPIRATION"])}</p>
                 </>
               )}
 
               <div className="flex flex-wrap gap-2 mt-3">
-                {/* Product-specific */}
                 {item["PRODUCT IMAGE"] && (
-                  <a
-                    href={item["PRODUCT IMAGE"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-                      View Image
-                    </button>
+                  <a href={item["PRODUCT IMAGE"]} target="_blank" rel="noreferrer">
+                    <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">View Image</button>
                   </a>
                 )}
                 {item["SPEC SHEET"] && (
-                  <a
-                    href={item["SPEC SHEET"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
-                      View Spec Sheet
-                    </button>
+                  <a href={item["SPEC SHEET"]} target="_blank" rel="noreferrer">
+                    <button className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">View Spec Sheet</button>
                   </a>
                 )}
                 {item["FLOW CHART"] && (
-                  <a
-                    href={item["FLOW CHART"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600">
-                      View Flow Chart
-                    </button>
+                  <a href={item["FLOW CHART"]} target="_blank" rel="noreferrer">
+                    <button className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600">View Flow Chart</button>
                   </a>
                 )}
-
-                {/* Supplier-level */}
                 {supplierInfo?.["IFS CERTIFICATE"] && (
-                  <a
-                    href={supplierInfo["IFS CERTIFICATE"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">
-                      IFS Certificate
-                    </button>
+                  <a href={supplierInfo["IFS CERTIFICATE"]} target="_blank" rel="noreferrer">
+                    <button className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">IFS Certificate</button>
                   </a>
                 )}
                 {supplierInfo?.["BRC CERTIFICATE"] && (
-                  <a
-                    href={supplierInfo["BRC CERTIFICATE"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                      BRC Certificate
-                    </button>
+                  <a href={supplierInfo["BRC CERTIFICATE"]} target="_blank" rel="noreferrer">
+                    <button className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">BRC Certificate</button>
                   </a>
                 )}
                 {supplierInfo?.["OTHER CERTIFICATES"] && (
-                  <a
-                    href={supplierInfo["OTHER CERTIFICATES"]}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <button className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600">
-                      Other Certificates
-                    </button>
+                  <a href={supplierInfo["OTHER CERTIFICATES"]} target="_blank" rel="noreferrer">
+                    <button className="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600">Other Certificates</button>
                   </a>
                 )}
               </div>
