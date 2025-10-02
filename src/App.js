@@ -1,12 +1,12 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
-import * as XLSX from "xlsx";
 
 function App() {
   const [products, setProducts] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [query, setQuery] = useState("");
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // --- Date Formatter ---
   function formatDate(value) {
@@ -29,19 +29,69 @@ function App() {
     return value;
   }
 
-  const handleFileRead = async () => {
-    try {
-      const res = await fetch("/products.xlsx");
-      if (!res.ok) throw new Error("File not found");
+  // CSV to JSON parser
+  const csvToJson = (csvText) => {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    if (lines.length === 0) return [];
+    
+    const headers = lines[0].split(',').map(header => header.trim());
+    
+    return lines.slice(1).map(line => {
+      const values = line.split(',').map(value => value.trim());
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = values[index] || '';
+      });
+      return obj;
+    });
+  };
 
-      const arrayBuffer = await res.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
+  const loadCSVData = async () => {
+  try {
+    setLoading(true);
+    setError(false);
 
-      const productSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const supplierSheet = workbook.Sheets[workbook.SheetNames[1]];
+    // Use environment variables with fallback to direct URLs
+    const PRODUCTS_CSV_URL = process.env.REACT_APP_PRODUCTS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=269240112&single=true&output=csv";
+    const SUPPLIERS_CSV_URL = process.env.REACT_APP_SUPPLIERS_CSV_URL || "https://docs.google.com/spreadsheets/d/e/2PACX-1vR6-9Cn52FwBQP_YP5NmYasHnqBnNZExfx4I2NUJtfEB0wD7kXXznrzr7fESOuccQ/pub?gid=1184049021&single=true&output=csv";
 
-      const productData = XLSX.utils.sheet_to_json(productSheet);
-      const supplierData = XLSX.utils.sheet_to_json(supplierSheet);
+      console.log("Loading products from:", PRODUCTS_CSV_URL);
+      console.log("Loading suppliers from:", SUPPLIERS_CSV_URL);
+
+      const [productsResponse, suppliersResponse] = await Promise.all([
+        fetch(PRODUCTS_CSV_URL, { 
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }),
+        fetch(SUPPLIERS_CSV_URL, { 
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+      ]);
+
+      if (!productsResponse.ok) {
+        throw new Error(`Products failed: ${productsResponse.status} ${productsResponse.statusText}`);
+      }
+      if (!suppliersResponse.ok) {
+        throw new Error(`Suppliers failed: ${suppliersResponse.status} ${suppliersResponse.statusText}`);
+      }
+
+      const productsText = await productsResponse.text();
+      const suppliersText = await suppliersResponse.text();
+
+      console.log("Products CSV sample:", productsText.substring(0, 200));
+      console.log("Suppliers CSV sample:", suppliersText.substring(0, 200));
+
+      // Parse CSV data using built-in function
+      const productsData = csvToJson(productsText);
+      const suppliersData = csvToJson(suppliersText);
+
+      console.log("Parsed products:", productsData.length, "rows");
+      console.log("Parsed suppliers:", suppliersData.length, "rows");
 
       // Normalize headers
       const normalize = (rows) =>
@@ -49,23 +99,31 @@ function App() {
           const obj = {};
           Object.keys(row).forEach((key) => {
             const cleanKey = key.trim().toUpperCase();
-            obj[cleanKey] =
-              typeof row[key] === "string" ? row[key].trim() : row[key];
+            obj[cleanKey] = typeof row[key] === "string" ? row[key].trim() : row[key];
           });
           return obj;
         });
 
-      setProducts(normalize(productData));
-      setSuppliers(normalize(supplierData));
+      const normalizedProducts = normalize(productsData);
+      const normalizedSuppliers = normalize(suppliersData);
+
+      console.log("Normalized products headers:", Object.keys(normalizedProducts[0] || {}));
+      console.log("Normalized suppliers headers:", Object.keys(normalizedSuppliers[0] || {}));
+
+      setProducts(normalizedProducts);
+      setSuppliers(normalizedSuppliers);
       setError(false);
+
     } catch (err) {
-      console.error("Failed to load Excel:", err);
+      console.error("Failed to load CSV data:", err);
       setError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    handleFileRead();
+    loadCSVData();
   }, []);
 
   const filtered = query
@@ -115,13 +173,28 @@ function App() {
           onChange={(e) => setQuery(e.target.value)}
         />
 
-        {error && (
-          <p className="text-red-500 mb-4 text-center">
-            ❌ Could not load Excel file. Check filename or path.
+        {loading && (
+          <p className="text-blue-500 mb-4 text-center">
+            📥 Loading product data...
           </p>
         )}
 
-        {query && filtered.length === 0 && (
+        {error && (
+          <div className="text-red-500 mb-4 text-center">
+            <p>❌ Could not load data.</p>
+            <p className="text-sm mt-2">
+              Please check your internet connection and try again.
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && products.length === 0 && (
+          <p className="text-yellow-500 mb-4 text-center">
+            ⚠️ No products loaded. Check if your CSV files have data.
+          </p>
+        )}
+
+        {!loading && !error && query && filtered.length === 0 && (
           <p className="text-gray-500 italic text-center">No results found.</p>
         )}
 
