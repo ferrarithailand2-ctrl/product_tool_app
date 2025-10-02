@@ -1,16 +1,15 @@
 {
   "files": {
     "main.css": "/product_tool_app/static/css/main.a5f51ea3.css",
-    "main.js": "/product_tool_app/static/js/main.2f9a3751.js",
+    "main.js": "/product_tool_app/static/js/main.b5d57df2.js",
     "static/js/453.121b0aa6.chunk.js": "/product_tool_app/static/js/453.121b0aa6.chunk.js",
-    "static/media/logo-GF.avif": "/product_tool_app/static/media/logo-GF.6bff9b5bab0cdca614ee.avif",
     "index.html": "/product_tool_app/index.html",
     "main.a5f51ea3.css.map": "/product_tool_app/static/css/main.a5f51ea3.css.map",
-    "main.2f9a3751.js.map": "/product_tool_app/static/js/main.2f9a3751.js.map",
+    "main.b5d57df2.js.map": "/product_tool_app/static/js/main.b5d57df2.js.map",
     "453.121b0aa6.chunk.js.map": "/product_tool_app/static/js/453.121b0aa6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.a5f51ea3.css",
-    "static/js/main.2f9a3751.js"
+    "static/js/main.b5d57df2.js"
   ]
 }
