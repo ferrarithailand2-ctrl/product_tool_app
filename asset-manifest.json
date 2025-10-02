@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/product_tool_app/static/css/main.a5f51ea3.css",
-    "main.js": "/product_tool_app/static/js/main.b5d57df2.js",
-    "static/js/453.121b0aa6.chunk.js": "/product_tool_app/static/js/453.121b0aa6.chunk.js",
+    "main.css": "/product_tool_app/static/css/main.28583a75.css",
+    "main.js": "/product_tool_app/static/js/main.6b62000e.js",
+    "static/js/488.663ea6d5.chunk.js": "/product_tool_app/static/js/488.663ea6d5.chunk.js",
     "index.html": "/product_tool_app/index.html",
-    "main.a5f51ea3.css.map": "/product_tool_app/static/css/main.a5f51ea3.css.map",
-    "main.b5d57df2.js.map": "/product_tool_app/static/js/main.b5d57df2.js.map",
-    "453.121b0aa6.chunk.js.map": "/product_tool_app/static/js/453.121b0aa6.chunk.js.map"
+    "main.28583a75.css.map": "/product_tool_app/static/css/main.28583a75.css.map",
+    "main.6b62000e.js.map": "/product_tool_app/static/js/main.6b62000e.js.map",
+    "488.663ea6d5.chunk.js.map": "/product_tool_app/static/js/488.663ea6d5.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a5f51ea3.css",
-    "static/js/main.b5d57df2.js"
+    "static/css/main.28583a75.css",
+    "static/js/main.6b62000e.js"
   ]
 }
