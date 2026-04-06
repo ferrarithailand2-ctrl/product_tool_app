@@ -198,6 +198,11 @@ function App() {
                     <button className="bg-indigo-500 text-white px-3 py-1 rounded hover:bg-indigo-600">View Flow Chart</button>
                   </a>
                 )}
+                {item["FDA NUMBER"] && (
+                  <a href={item["FDA NUMBER"]} target="_blank" rel="noreferrer">
+                    <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">FDA Number</button>
+                  </a>
+                )}
                 {supplierInfo?.["IFS CERTIFICATE"] && (
                   <a href={supplierInfo["IFS CERTIFICATE"]} target="_blank" rel="noreferrer">
                     <button className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600">IFS Certificate</button>
